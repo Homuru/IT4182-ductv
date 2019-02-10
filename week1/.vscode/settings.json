@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "listword.h": "c",
+        "file.h": "c"
+    }
+}
