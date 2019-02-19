@@ -281,9 +281,24 @@ Token *getToken(void)
             return makeToken(SB_LPAR, ln, cn);
         }
     case CHAR_RPAR:
-        token = makeToken(SB_RPAR, lineNo, colNo);
+        // token = makeToken(SB_RPAR, lineNo, colNo);
+        // readChar();
+        // return token;
+        ln = lineNo;
+        cn = colNo;
         readChar();
-        return token;
+        switch (charCodes[currentChar])
+        {
+        case CHAR_PERIOD:
+            readChar();
+            return makeToken(SB_RSEL, ln, cn);
+        case CHAR_TIMES:
+            readChar();
+            skipComment();
+            return getToken();
+        default:
+            return makeToken(SB_RPAR, ln, cn);
+        }
     // case CHAR_LBRACKET:
     //     token = makeToken(SB_LSEL, lineNo, colNo);
     //     readChar();
@@ -327,7 +342,7 @@ void printToken(Token *token)
         printf("TK_IDENT(%s)\n", token->string);
         break;
     case TK_NUMBER:
-        printf("TK_NUMBER(%s)\n", token->string);
+        printf("TK_NUMBER(%d)\n", token->value);
         break;
     case TK_CHAR:
         printf("TK_CHAR(\'%s\')\n", token->string);
