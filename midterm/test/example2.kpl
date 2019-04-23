@@ -10,7 +10,15 @@ Function F(n : Integer) : Integer;
   End;
 
 Begin
+    x,y,z := y,z,u;
+    Repeat 
+        Begin
+            x := x+1;
+        End;
+    Until
+        x > 10;
     x := 3.14;
+    x := 'kha banh vao tu';
     x := If n = 0 Then 1 Else 2;
   For n := 1 To 7 Do
     Begin

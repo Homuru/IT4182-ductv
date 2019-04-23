@@ -52,6 +52,12 @@ void error(ErrorCode err, int lineNo, int colNo) {
   case ERR_INVALIDFACTOR:
     printf("%d-%d:%s\n", lineNo, colNo, ERM_INVALIDFACTOR);
     break;
+  case ERR_INVALIDFLOAT:
+    printf("%d-%d:%s\n", lineNo, colNo, ERM_INVALIDFLOAT);
+    break;
+  case ERR_INVALIDSYNTAX:
+    printf("%d-%d:%s\n", lineNo, colNo, ERM_INVALIDSYNTAX);
+    break;
   }
   exit(0);
 }

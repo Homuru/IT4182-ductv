@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "reader.h"
 #include "charcode.h"
@@ -84,6 +85,7 @@ Token* readNumber(void) {
   }
 
   if(charCodes[currentChar] == CHAR_PERIOD) {
+    token->tokenType = KW_FLOAT;
     token->string[count++] = (char)currentChar;
     readChar();
     while ((currentChar != EOF) && (charCodes[currentChar] == CHAR_DIGIT)) {
@@ -91,6 +93,8 @@ Token* readNumber(void) {
       readChar();
     }
     token->string[count] = '\0';
+    if(charCodes[currentChar] == CHAR_PERIOD)
+      error(ERR_INVALIDFLOAT, token->lineNo, token->colNo);
     // token->val = atof(token->string);
     return token;
   }
@@ -102,7 +106,7 @@ Token* readNumber(void) {
 
 Token* readConstChar(void) {
   Token *token = makeToken(TK_CHAR, lineNo, colNo);
-
+  int index = 0;
   readChar();
   if (currentChar == EOF) {
     token->tokenType = TK_NONE;
@@ -110,21 +114,30 @@ Token* readConstChar(void) {
     return token;
   }
     
-  token->string[0] = currentChar;
-  token->string[1] = '\0';
-
+  token->string[index] = currentChar;
+  ++index;
+  // token->string[1] = '\0';
   readChar();
   if (currentChar == EOF) {
+    printf("Console 2");
     token->tokenType = TK_NONE;
     error(ERR_INVALIDCHARCONSTANT, token->lineNo, token->colNo);
     return token;
   }
-
+  while(charCodes[currentChar] == CHAR_LETTER || charCodes[currentChar] == CHAR_SPACE) {
+    token->tokenType = KW_STRING;
+    token->string[index] = currentChar;
+    ++index;
+    readChar();
+  }
+  token->string[index] = '\0';
+  // printf("%s\n",token->string);
   if (charCodes[currentChar] == CHAR_SINGLEQUOTE) {
     readChar();
     return token;
   } else {
     token->tokenType = TK_NONE;
+    printf("Console 3\n");
     error(ERR_INVALIDCHARCONSTANT, token->lineNo, token->colNo);
     return token;
   }
@@ -238,7 +251,7 @@ Token* getToken(void) {
     readChar(); 
     return token;
   default:
-    printf("Console.log(2)");
+    // printf("Console.log(2)");
     token = makeToken(TK_NONE, lineNo, colNo);
     error(ERR_INVALIDSYMBOL, lineNo, colNo);
     readChar(); 
@@ -276,8 +289,8 @@ void printToken(Token *token) {
   case KW_INTEGER: printf("KW_INTEGER\n"); break;
   case KW_CHAR: printf("KW_CHAR\n"); break;
   case KW_ARRAY: printf("KW_ARRAY\n"); break;
-  case KW_STRING: printf("KW_STRING\n"); break;
-  case KW_FLOAT: printf("KW_FLOAT\n"); break;
+  case KW_STRING: printf("TK_STRING(\'%s\')\n", token->string); break;
+  case KW_FLOAT: printf("KW_FLOAT(%s)\n",token->string); break;
   case KW_OF: printf("KW_OF\n"); break;
   case KW_FUNCTION: printf("KW_FUNCTION\n"); break;
   case KW_PROCEDURE: printf("KW_PROCEDURE\n"); break;
@@ -291,6 +304,8 @@ void printToken(Token *token) {
   case KW_DO: printf("KW_DO\n"); break;
   case KW_FOR: printf("KW_FOR\n"); break;
   case KW_TO: printf("KW_TO\n"); break;
+  case KW_REPEAT: printf("KW_REPEAT\n"); break;
+  case KW_UNTIL: printf("KW_UNTIL\n"); break;
 
   case SB_SEMICOLON: printf("SB_SEMICOLON\n"); break;
   case SB_COLON: printf("SB_COLON\n"); break;
@@ -311,6 +326,7 @@ void printToken(Token *token) {
   case SB_RPAR: printf("SB_RPAR\n"); break;
   case SB_LSEL: printf("SB_LSEL\n"); break;
   case SB_RSEL: printf("SB_RSEL\n"); break;
+  case SB_SINGLEQUOTE: printf("SB_SINGLEQUOTE\n"); break;
   }
 }
 

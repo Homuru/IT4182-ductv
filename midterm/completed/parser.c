@@ -25,7 +25,9 @@ void eat(TokenType tokenType) {
   if (lookAhead->tokenType == tokenType) {
     printToken(lookAhead);
     scan();
-  } else missingToken(tokenType, lookAhead->lineNo, lookAhead->colNo);
+  } else {
+    missingToken(tokenType, lookAhead->lineNo, lookAhead->colNo);
+  }
 }
 
 void compileProgram(void) {
@@ -163,6 +165,7 @@ void compileUnsignedConstant(void) {
     eat(TK_CHAR);
     break;
   default:
+    printf("1");
     error(ERR_INVALIDCONSTANT, lookAhead->lineNo, lookAhead->colNo);
     break;
   }
@@ -196,6 +199,7 @@ void compileConstant2(void) {
     eat(TK_IDENT);
     break;
   default:
+    printf("2");
     error(ERR_INVALIDCONSTANT, lookAhead->lineNo, lookAhead->colNo);
     break;
   }
@@ -320,23 +324,88 @@ void compileStatement(void) {
   case KW_ELSE:
     break;
     // Error occurs
+  case KW_REPEAT:
+    compileRepeatSt();
+    break;
+  case KW_UNTIL:
+    break;
   default:
     error(ERR_INVALIDSTATEMENT, lookAhead->lineNo, lookAhead->colNo);
     break;
   }
 }
 
+// void compileRepeatSt(void) {
+//   assert("Parsing an repeat statement ....");
+//   eat(KW_REPEAT);
+//   compileStatements();
+//   printf("I'm here\n");
+//   compileUntilSt();
+//   assert("Repeat statement parsed ....");
+// }
+
+// void compileUntilSt(void) {
+//   eat(KW_UNTIL);
+//   compileCondition();
+// }
+
 void compileAssignSt(void) {
   assert("Parsing an assign statement ....");
   eat(TK_IDENT);
   if (lookAhead->tokenType == SB_LSEL)
     compileIndexes();
-  eat(SB_ASSIGN);
-  if (lookAhead->tokenType == KW_IF)
-    compileIfAssign();
-  compileExpression();
-  assert("Assign statement parsed ....");
+  if (lookAhead->tokenType == SB_COMMA) {
+    compileMultipleAssign();
+    assert("Assign statement parsed ....");
+  } else {
+    eat(SB_ASSIGN);
+    if (lookAhead->tokenType == KW_IF)
+      compileIfAssign();
+    compileExpression();
+    assert("Assign statement parsed ....");
+  }
+  
 }
+
+void compileMultipleExpression(int num) {
+  assert("Parsing an multiple expression statement....");
+  int count = 0;
+  // printf("%d\n",num);
+  while(count < num) {
+    // printf("Count: %d\n",count);
+    compileExpression();
+    ++count;
+    if(lookAhead->tokenType == SB_COMMA) {
+      eat(SB_COMMA);
+    } else {
+      if(count != num) {
+        printf("Im here !\n");
+        error(ERR_INVALIDSYNTAX, lookAhead->lineNo, lookAhead->colNo);
+      } else {
+        assert("Multiple expression statement parsed....");
+      }
+    }
+  }
+}
+
+void compileMultipleAssign(void) {
+  assert("Parsing an multiple assign statement....");
+  int num = 1;
+  eat(SB_COMMA);
+  while(lookAhead->tokenType == TK_IDENT) {
+    eat(TK_IDENT);
+    ++num;
+    if(lookAhead->tokenType == SB_COMMA) {
+      eat(SB_COMMA);
+    }
+    if(lookAhead->tokenType == SB_ASSIGN) {
+      eat(SB_ASSIGN);
+      compileMultipleExpression(num);
+    }
+  }
+  assert("Multiple assign statement parsed....");
+}
+
 
 void compileCallSt(void) {
   assert("Parsing a call statement ....");
@@ -366,13 +435,13 @@ void compileIfSt(void) {
 }
 
 void compileIfAssign(void) {
-  assert("Parsing an if statement from asign statement....");
+  assert("Parsing an if statement from assign statement....");
   eat(KW_IF);
   compileCondition();
   eat(KW_THEN);
   compileExpression();
   compileElseAssign();
-  assert("If statement from asign statement parsed ....");
+  assert("If statement from assign statement parsed ....");
 }
 
 void compileElseAssign(void) {
@@ -392,6 +461,16 @@ void compileWhileSt(void) {
   eat(KW_DO);
   compileStatement();
   assert("While statement parsed ....");
+}
+
+void compileRepeatSt(void) {
+  assert("Parsing a repeat statement ....");
+  eat(KW_REPEAT);
+  compileStatements();
+  eat(KW_UNTIL);
+  compileCondition();
+
+  assert("Repeat statement parsed ....");
 }
 
 void compileForSt(void) {
@@ -504,7 +583,6 @@ void compileExpression(void) {
     compileExpression2();
     break;
   default:
-    printf("Console.log(1)\n");
     compileExpression2();
   }
   assert("Expression parsed");
@@ -529,6 +607,9 @@ void compileExpression3(void) {
     compileExpression3();
     break;
     // check the FOLLOW set
+    
+  case KW_UNTIL:
+
   case KW_TO:
   case KW_DO:
   case SB_RPAR:
@@ -601,6 +682,9 @@ void compileFactor(void) {
   case TK_NUMBER:
     eat(TK_NUMBER);
     break;
+  case KW_FLOAT:
+    eat(KW_FLOAT);
+    break;
   case TK_CHAR:
     eat(TK_CHAR);
     break;
@@ -616,12 +700,17 @@ void compileFactor(void) {
     default: break;
     }
     break;
+  case KW_STRING:
+    eat(KW_STRING);
+    break;
   case SB_LPAR:
     eat(SB_LPAR);
     compileExpression();
     eat(SB_RPAR);
     break;
-  // case SB_SEMICOLON:
+  case SB_SEMICOLON:
+    break;
+  // case SB_SINGLEQUOTE:
   //   break;
   default:
     error(ERR_INVALIDFACTOR, lookAhead->lineNo, lookAhead->colNo);

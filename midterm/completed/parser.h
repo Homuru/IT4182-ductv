@@ -54,6 +54,11 @@ void compileTerm(void);
 void compileTerm2(void);
 void compileFactor(void);
 void compileIndexes(void);
+void compileMultipleAssign(void);
+void compileMultipleExpession(int num);
+
+void compileRepeatSt(void);
+// void compileUntilSt(void);
 
 void compileIfAssign(void);
 void compileElseAssign(void);
